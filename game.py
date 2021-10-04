@@ -3,10 +3,13 @@ from player import Player
 import pack_selector
 import random
 
-def get_cards_for_hand(players):
+def get_first_chooser(players: list):
+    return players[random.randint(1, len(players)) - 1]
+
+def get_players_cards_for_hand(players):
     player_cards = {}
     for player in players:
-        if len(player.cards) > 0:
+        if player.cards:
             player_cards[player] = player.cards.pop()
     return player_cards
 
@@ -28,7 +31,11 @@ def show_choosers_card(card: dict, pack: Pack) -> str:
     return card_str
     
 def select_stat(chooser: Player, stats: list):
-    selected_stat_id = input(chooser.name + ', select your stat (1-' + str(len(stats)) + ')')
+
+    if chooser.is_human == 1:
+        selected_stat_id = input(chooser.name + ', select your stat (1-' + str(len(stats)) + ')')
+    else:
+        selected_stat_id = random.randint(1, len(stats))
     try:
         stat = stats[int(selected_stat_id)]
     except:
@@ -36,8 +43,8 @@ def select_stat(chooser: Player, stats: list):
     return stat
 
 def play_hand(chooser: Player, players: list, pack: Pack):
-
-    player_cards = get_cards_for_hand(players)
+    print(chooser.name, 'to select the stat')
+    player_cards = get_players_cards_for_hand(players)
     print(show_choosers_card(player_cards[chooser], pack))
     stat = select_stat(chooser, pack.stats)
     print(chooser.name, 'chose:', stat['stat_name'])
@@ -50,25 +57,47 @@ def play_hand(chooser: Player, players: list, pack: Pack):
     print('***', winner.name.upper(), 'wins the hand! ***')
     for k, v in player_cards.items():
         winner.cards.insert(0, v)
+    print('-'*3, 'Player card counts:')
+    for player in players:
+            print(player.name, len(player.cards))
     return winner
+
+def check_game_winner(round_number: int, players: list, player_placings: dict) -> bool:
+    players_with_cards = 0
+    for player in players:
+        if player.cards:
+            players_with_cards += 1
+        else:
+            if player not in player_placings.keys():
+                player_placings[player] = round_number
+    return players_with_cards == 1 
+
+def show_final_placings(winner: Player, player_placings: dict):
+    print(winner.name, "IS THE WINNER!!!")
+    sort_placings = sorted(player_placings.items(), key=lambda player: player[1], reverse=True)
+    for player in sort_placings:
+        print(player[0].name, 'was out in hand:', player[1])
 
 def play_game():
     players = [
-        Player('Kevin'),
-        Player('George'),
-        Player('Rachael'),
-        Player('Daisy')]
+        Player('Kevin', 1),
+        Player('George', 0),
+        Player('Rachael', 0),
+        Player('Daisy', 0)]
 
     pack = pack_selector.get_pack('cricket')
     pack.shuffle()
     pack.deal(players)
+    chooser = get_first_chooser(players)
+    game_won = False
+    player_placings = {}
+    round_number = 0
 
-    chooser = players[random.randint(1, len(players)) - 1]
-
-    for i in range(1, 101):
-        print('----------', 'ROUND', i, '----------')
+    while not game_won:
+        round_number += 1
+        print('-' * 10, 'HAND', round_number, '-' * 10)
         chooser = play_hand(chooser, players, pack)
-        for player in players:
-            print(player.name, len(player.cards))
+        game_won = check_game_winner(round_number, players, player_placings)
+    show_final_placings(chooser, player_placings)  
 
 play_game()
