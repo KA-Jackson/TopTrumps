@@ -1,6 +1,15 @@
 import random
+import pandas as pd
 
 class Pack(object):
+
+    def __add_stat_ranks(self):
+        cards_df = pd.DataFrame.from_dict(self.cards)
+        for stat in self.stats.values():
+            ascend = stat['order'] == 'Low'
+            cards_df[stat['stat_name'] + ' Rank'] = cards_df[stat['stat_name']].rank(ascending=ascend).astype(int)
+            #cards_df['Runs scored Rank'] = cards_df['Runs scored'].rank(ascending=ascend).astype(int)
+        self.cards = cards_df.to_dict(orient='records')
 
     def __init__(self, pack_name: str, card_name: str, info, stats, cards):
         self.pack_name = pack_name
@@ -12,6 +21,7 @@ class Pack(object):
         for v in stats.values():
             max_len = max(max_len, len(v['stat_name']))
         self.max_len_stat = max_len
+        self.__add_stat_ranks()
 
     def __deal_round(self, players, deal_cards):
         for player in players:

@@ -24,10 +24,11 @@ def get_hand_winner(player_cards: dict, stat: dict) -> dict:
 
 def show_choosers_card(card: dict, pack: Pack) -> str:
     card_str = pack.card_name + ': ' + card[pack.card_name] + '\n'
-    for l in pack.info:
-        card_str += str(l) + ': ' + str(card[l]) + '\n'
+    for i in pack.info:
+        card_str += str(i) + ': ' + str(card[i]) + '\n'
     for k, v in pack.stats.items():
-        card_str += '(' + str(k) + ') ' + v['stat_name'].ljust(pack.max_len_stat) + '\t' + str(card[v['stat_name']]) + '\n'
+        card_str += '(' + str(k) + ') ' + v['stat_name'].ljust(pack.max_len_stat) + '\t' + str(card[v['stat_name']])
+        card_str += '\t[' + str(card[v['stat_name'] + ' Rank']) + ']\n'
     return card_str
     
 def select_stat(chooser: Player, stats: list):
@@ -38,6 +39,7 @@ def select_stat(chooser: Player, stats: list):
         selected_stat_id = random.randint(1, len(stats))
     try:
         stat = stats[int(selected_stat_id)]
+
     except:
         stat = select_stat(chooser, stats)
     return stat
@@ -80,10 +82,10 @@ def show_final_placings(winner: Player, player_placings: dict):
 
 def play_game():
     players = [
-        Player('Kevin', 1),
+        Player('Kevin', 0),
         Player('George', 0),
         Player('Rachael', 0),
-        Player('Daisy', 0)]
+        Player('Daisy', 1)]
 
     pack = pack_selector.get_pack('cricket')
     pack.shuffle()
